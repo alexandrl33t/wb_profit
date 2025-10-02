@@ -1,0 +1,9 @@
+.idea
+.env
+/.venv/
+__pycache__/
+*.py[cod]
+/venv/
+/test/
+*.log
+credentials.json
