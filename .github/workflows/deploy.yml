@@ -9,7 +9,7 @@ jobs:
   build:
     name: Build & Push Docker image
     runs-on: ubuntu-latest
-
+    environment: production
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,7 +37,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-
+    environment: production
     steps:
       # Шаг 1. Чекаут кода
       - name: Checkout code
