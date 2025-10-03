@@ -52,7 +52,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 22
           source: "docker-compose.prod.yml"
-          target: "/home/${{ secrets.SERVER_USER }}/apps/wb_profit/"
+          target: "/home/${{ secrets.SERVER_USER }}/apps/wb_profit"
 
       # Шаг 1. Создание .env на сервере и деплой
       - name: Deploy to server via SSH
