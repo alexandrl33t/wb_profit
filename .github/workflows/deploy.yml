@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    name: Build & Push Docker image
+    name: build
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -37,28 +37,12 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.DOCKER_IMAGE }}:${{ github.sha }}
 
   deploy:
+    name: deploy
     runs-on: ubuntu-latest
     environment: production
     needs: build
     steps:
-      # Шаг 1. Чекаут кода
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      # Шаг 2. Логинимся в Docker Hub
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      # Шаг 3. Сборка и пуш образа
-      - name: Build and Push Docker image
-        run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.DOCKER_IMAGE }}:latest -f ./Dockerfile .
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.DOCKER_IMAGE }}:latest
-
-      # Шаг 4. Деплой на сервер через SSH
+      # Шаг 1. Создание .env на сервере и деплой
       - name: Deploy to server via SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -67,7 +51,15 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 22
           script: |
-            cd ~/myapp
-            docker-compose pull
+            cd ~/apps/${{ vars.DOCKER_IMAGE }}
+            
+            # Создаем .env из GitHub Secrets
+            echo "${{ secrets.SERVER_ENV }}" > ~/myapp/.env
+            
+            chmod 600 ~/myapp/.env
+            
+            # Деплой Docker Compose
+            export DOCKER_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.DOCKER_IMAGE }}
             docker-compose -f docker-compose.prod.yml pull
             docker-compose -f docker-compose.prod.yml up -d --remove-orphans
+            docker image prune -f
