@@ -54,8 +54,8 @@ jobs:
       # Шаг 3. Сборка и пуш образа
       - name: Build and Push Docker image
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/myapp:latest .
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/myapp:latest
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.DOCKER_IMAGE }}:latest -f ./Dockerfile .
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.DOCKER_IMAGE }}:latest
 
       # Шаг 4. Деплой на сервер через SSH
       - name: Deploy to server via SSH
