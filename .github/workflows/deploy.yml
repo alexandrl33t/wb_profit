@@ -67,9 +67,7 @@ jobs:
             
             # Создаем .env из GitHub Secrets
             echo "${{ secrets.SERVER_ENV }}" > ~/apps/wb_profit/.env
-            echo "${{ secrets.GSPREAD_CREDENTIALS_CONTENT }}" > ~/apps/wb_profit/credentials.json
             chmod 600 ~/apps/wb_profit/.env
-            chmod 600 ~/apps/wb_profit/credentials.json
             
             # Деплой Docker Compose
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
