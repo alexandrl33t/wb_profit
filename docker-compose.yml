@@ -4,6 +4,6 @@ services:
   wb_profit:
     build: .
     container_name: wb_profit
-    environment:
-      - ENV=production
+    env_file:
+      - .env
     restart: always

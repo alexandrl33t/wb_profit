@@ -272,5 +272,6 @@ def updates_data():
         time.sleep(1)
 
 
+print("Starting...")
 all_start_to_user()
 updates_data()
