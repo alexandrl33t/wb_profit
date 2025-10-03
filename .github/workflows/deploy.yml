@@ -51,12 +51,13 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 22
           script: |
-            cd ~/apps/${{ vars.DOCKER_IMAGE }}
+            cd ~/apps/wb_profit
             
             # Создаем .env из GitHub Secrets
-            echo "${{ secrets.SERVER_ENV }}" > ~/myapp/.env
-            
-            chmod 600 ~/myapp/.env
+            echo "${{ secrets.SERVER_ENV }}" > ~/apps/wb_profit/.env
+            echo "${{ secrets.GSPREAD_CREDENTIALS_CONTENT }}" > ~/apps/wb_profit/credentials.json
+            chmod 600 ~/apps/wb_profit/.env
+            chmod 600 ~/apps/wb_profit/credentials.json
             
             # Деплой Docker Compose
             export DOCKER_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.DOCKER_IMAGE }}

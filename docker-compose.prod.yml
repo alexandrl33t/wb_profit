@@ -9,6 +9,7 @@ services:
     env_file:
       - .env
     volumes:
+      - ~/apps/wb_profit/credentials.json:/app/credentials.json:ro
       - wb_data:/app/data
     ports:
       - "8000:8000"

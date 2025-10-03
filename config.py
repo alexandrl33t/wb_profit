@@ -12,7 +12,7 @@ class Settings(BaseSettings):
 
     # Google credentials
     gspread_credentials_file: Path = Field(
-        ..., description="Путь к JSON с credentials для Google API"
+        "credentials.json", description="Путь к JSON с credentials для Google API"
     )
 
     model_config = SettingsConfigDict(
