@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  app:
+    image: ${DOCKER_IMAGE}:latest
+    restart: always
+    environment:
+      - ENV=production
+    env_file:
+      - .env
+    volumes:
+      - wb_data:/app/data
+    ports:
+      - "8000:8000"
+
+volumes:
+  wb_data:

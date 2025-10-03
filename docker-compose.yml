@@ -1,0 +1,9 @@
+version: "3.9"
+
+services:
+  wb_profit:
+    build: .
+    container_name: wb_profit
+    environment:
+      - ENV=production
+    restart: always
