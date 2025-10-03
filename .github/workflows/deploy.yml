@@ -72,6 +72,7 @@ jobs:
             chmod 600 ~/apps/wb_profit/credentials.json
             
             # Деплой Docker Compose
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
             export DOCKER_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.DOCKER_IMAGE }}
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
