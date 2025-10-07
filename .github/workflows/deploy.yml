@@ -1,77 +1,77 @@
-name: Build and Deploy to Server
-
-on:
-  push:
-    branches:
-      - main
-
-jobs:
-  build:
-    name: build
-    runs-on: ubuntu-latest
-    environment: production
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and push
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.DOCKER_IMAGE }}:latest
-
-  deploy:
-    name: deploy
-    runs-on: ubuntu-latest
-    environment: production
-    needs: build
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Copy docker-compose.prod.yml to server
-        uses: appleboy/scp-action@v0.1.6
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          port: 22
-          source: "docker-compose.prod.yml"
-          target: "/home/${{ secrets.SERVER_USER }}/apps/wb_profit"
-
-      # Шаг 1. Создание .env на сервере и деплой
-      - name: Deploy to server via SSH
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          port: 22
-          script: |
-            cd ~/apps/wb_profit
-            
-            # Создаем .env из GitHub Secrets
-            echo "${{ secrets.SERVER_ENV }}" > ~/apps/wb_profit/.env
-            chmod 600 ~/apps/wb_profit/.env
-            
-            # Деплой Docker Compose
-            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-            export DOCKER_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.DOCKER_IMAGE }}
-            docker compose -f docker-compose.prod.yml pull
-            docker compose -f docker-compose.prod.yml up -d --remove-orphans
-            docker image prune -f
+#name: Build and Deploy to Server
+#
+#on:
+#  push:
+#    branches:
+#      - main
+#
+#jobs:
+#  build:
+#    name: build
+#    runs-on: ubuntu-latest
+#    environment: production
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v4
+#
+#      - name: Set up QEMU
+#        uses: docker/setup-qemu-action@v3
+#
+#      - name: Set up Docker Buildx
+#        uses: docker/setup-buildx-action@v3
+#
+#      - name: Log in to Docker Hub
+#        uses: docker/login-action@v3
+#        with:
+#          username: ${{ secrets.DOCKERHUB_USERNAME }}
+#          password: ${{ secrets.DOCKERHUB_TOKEN }}
+#
+#      - name: Build and push
+#        uses: docker/build-push-action@v5
+#        with:
+#          context: .
+#          file: ./Dockerfile
+#          push: true
+#          tags: |
+#            ${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.DOCKER_IMAGE }}:latest
+#
+#  deploy:
+#    name: deploy
+#    runs-on: ubuntu-latest
+#    environment: production
+#    needs: build
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v4
+#
+#      - name: Copy docker-compose.prod.yml to server
+#        uses: appleboy/scp-action@v0.1.6
+#        with:
+#          host: ${{ secrets.SERVER_HOST }}
+#          username: ${{ secrets.SERVER_USER }}
+#          key: ${{ secrets.SERVER_SSH_KEY }}
+#          port: 22
+#          source: "docker-compose.prod.yml"
+#          target: "/home/${{ secrets.SERVER_USER }}/apps/wb_profit"
+#
+#      # Шаг 1. Создание .env на сервере и деплой
+#      - name: Deploy to server via SSH
+#        uses: appleboy/ssh-action@v1.2.0
+#        with:
+#          host: ${{ secrets.SERVER_HOST }}
+#          username: ${{ secrets.SERVER_USER }}
+#          key: ${{ secrets.SERVER_SSH_KEY }}
+#          port: 22
+#          script: |
+#            cd ~/apps/wb_profit
+#
+#            # Создаем .env из GitHub Secrets
+#            echo "${{ secrets.SERVER_ENV }}" > ~/apps/wb_profit/.env
+#            chmod 600 ~/apps/wb_profit/.env
+#
+#            # Деплой Docker Compose
+#            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+#            export DOCKER_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.DOCKER_IMAGE }}
+#            docker compose -f docker-compose.prod.yml pull
+#            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+#            docker image prune -f
