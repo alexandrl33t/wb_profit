@@ -1,6 +1,7 @@
 import os
 import uuid
 from datetime import datetime
+from decimal import Decimal
 from typing import Optional
 
 from cryptography.fernet import Fernet
@@ -13,10 +14,13 @@ from sqlalchemy import (
     ForeignKey,
     UniqueConstraint,
     func,
+    Numeric,
 )
 from sqlalchemy.dialects.postgresql import UUID, TIMESTAMP
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.types import TypeDecorator, LargeBinary
+
+from core.config import settings
 
 
 # ---------- Шифрование (прозрачный тип для чувствительных строк) ----------
@@ -26,10 +30,11 @@ class EncryptedString(TypeDecorator):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        key = os.getenv("FERNET_KEY")
-        if not key:
-            raise RuntimeError("FERNET_KEY is not set")
-        self._fernet = Fernet(key.encode() if isinstance(key, str) else key)
+        self._fernet = Fernet(
+            settings.fernet_key.encode()
+            if isinstance(settings.fernet_key, str)
+            else settings.fernet_key
+        )
 
     def process_bind_param(self, value, dialect):
         if value is None:
@@ -59,7 +64,7 @@ class TimestampedMixin:
     )
 
 
-# ---------- Таблицы домена ----------
+# ---------- Таблицы юзеров ----------
 class User(TimestampedMixin, Base):
     __tablename__ = "users"
 
@@ -71,9 +76,6 @@ class User(TimestampedMixin, Base):
 
     # Токен WB — шифруем
     wb_token: Mapped[Optional[str]] = mapped_column(EncryptedString, nullable=True)
-
-    # Ключ доступа к gspread — шифруем
-    gspread_key: Mapped[Optional[str]] = mapped_column(EncryptedString, nullable=True)
 
     # Личные сообщения в TG — опционально
     telegram_user_id: Mapped[Optional[int]] = mapped_column(
@@ -90,8 +92,8 @@ class Chat(TimestampedMixin, Base):
     __tablename__ = "chats"
 
     # TG chat_id и имя чата
-    chat_id: Mapped[int] = mapped_column(
-        BigInteger, nullable=False, unique=True, index=True
+    chat_id: Mapped[str] = mapped_column(
+        String(255), nullable=False, unique=True, index=True
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
 
@@ -103,13 +105,8 @@ class Chat(TimestampedMixin, Base):
 
 class Script(TimestampedMixin, Base):
     __tablename__ = "scripts"
-
-    # Код скрипта — уникальный, чтобы ссылаться в коде/конфигах
-    code: Mapped[str] = mapped_column(
-        String(64), nullable=False, unique=True, index=True
-    )
     # Человекочитаемое имя и описание
-    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    title: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
 
     subscriptions: Mapped[list["UserScriptLink"]] = relationship(
@@ -144,7 +141,7 @@ class UserScriptLink(TimestampedMixin, Base):
 
     # Отчётная таблица/лист для конкретного скрипта (если на скрипт нужен отдельный ключ)
     report_spreadsheet_key: Mapped[Optional[str]] = mapped_column(
-        EncryptedString, nullable=True
+        String(255), nullable=True
     )
 
     # связи
@@ -159,3 +156,79 @@ class UserScriptLink(TimestampedMixin, Base):
         Index("ix_links_chat", "chat_id"),
         Index("ix_links_enabled_until", "enabled_until"),
     )
+
+
+# # ---------- Каталог товаров и метрики (история прибыли/выручки) ----------
+# class Product(TimestampedMixin, Base):
+#     __tablename__ = "products"
+#
+#     # Владелец ассортимента
+#     user_id: Mapped[uuid.UUID] = mapped_column(
+#         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+#     )
+#
+#     # Код артикула (supplierArticle / vendorCode)
+#     article: Mapped[str] = mapped_column(String(128), nullable=False)
+#
+#     __table_args__ = (
+#         UniqueConstraint("user_id", "article", name="uq_product_user_article"),
+#         Index("ix_products_user", "user_id"),
+#         Index("ix_products_article", "article"),
+#     )
+#
+#
+# class ArticleMetric(TimestampedMixin, Base):
+#     __tablename__ = "article_metrics"
+#
+#     # Какой товар
+#     product_id: Mapped[uuid.UUID] = mapped_column(
+#         UUID(as_uuid=True),
+#         ForeignKey("products.id", ondelete="CASCADE"),
+#         nullable=False,
+#     )
+#
+#     # Округлённый до часа момент времени (UTC)
+#     date_hour: Mapped[datetime] = mapped_column(
+#         TIMESTAMP(timezone=True), nullable=False, index=True
+#     )
+#
+#     # Имя метрики: например, "profit" или "revenue"
+#     metric_name: Mapped[str] = mapped_column(String(32), nullable=False)
+#
+#     # Значение метрики
+#     value: Mapped[Decimal] = mapped_column(Numeric(18, 2), nullable=False)
+#
+#     __table_args__ = (
+#         UniqueConstraint(
+#             "product_id", "date_hour", "metric_name", name="uq_metric_unique"
+#         ),
+#         Index("ix_metrics_product_hour", "product_id", "date_hour"),
+#         Index("ix_metrics_product_metric", "product_id", "metric_name"),
+#     )
+#
+#
+# class UserTotals(TimestampedMixin, Base):
+#     __tablename__ = "user_totals"
+#
+#     # Владелец суммарных показателей
+#     user_id: Mapped[uuid.UUID] = mapped_column(
+#         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+#     )
+#
+#     # Часовой срез (UTC)
+#     date_hour: Mapped[datetime] = mapped_column(
+#         TIMESTAMP(timezone=True), nullable=False, index=True
+#     )
+#
+#     # Суммарные показатели за этот час
+#     total_profit: Mapped[Decimal] = mapped_column(
+#         Numeric(18, 2), nullable=False, default=0
+#     )
+#     total_revenue: Mapped[Decimal] = mapped_column(
+#         Numeric(18, 2), nullable=False, default=0
+#     )
+#
+#     __table_args__ = (
+#         UniqueConstraint("user_id", "date_hour", name="uq_user_totals_unique"),
+#         Index("ix_totals_user_hour", "user_id", "date_hour"),
+#     )

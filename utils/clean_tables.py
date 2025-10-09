@@ -1,6 +1,6 @@
 import gspread
 
-from config import settings
+from core.config import settings, logger
 
 
 def start_clean(key_table: str):
@@ -8,11 +8,11 @@ def start_clean(key_table: str):
     sh = gc.open_by_key(key_table)
 
     for worksheet in sh.worksheets():
-        print(f"🧹 Очищаем лист: {worksheet.title}")
+        logger.info(f"🧹 Очищаем лист: {worksheet.title}")
 
         all_cells = worksheet.get_all_cells()
         if not all_cells:
-            print("  ⚠️ Лист пуст — пропускаем.")
+            logger.warning("  ⚠️ Лист пуст — пропускаем.")
             continue
 
         # Определяем количество строк и столбцов
@@ -31,13 +31,12 @@ def start_clean(key_table: str):
                 last_nonempty_row = i
 
         if last_nonempty_row < max_row:
-            print(f"  Удаляем строки с {last_nonempty_row + 1} по {max_row}")
+            logger.info(f"  Удаляем строки с {last_nonempty_row + 1} по {max_row}")
             worksheet.delete_rows(last_nonempty_row + 1, max_row)
         else:
-            print("  ✅ Пустых строк в конце нет.")
+            logger.info("  ✅ Пустых строк в конце нет.")
 
-    print("✨ Очистка завершена.")
+    logger.info("✨ Очистка завершена.")
 
 
-# start_clean("1kC6rd_BMrUY2s-0hD-OHtnCIuWutJV_Y642ZtxVdpzk")
-start_clean("1Z7H8qQGPTYAZtUSGsI9G0294f5tk44U0Xmncs6n_Agg")
+start_clean("table key")

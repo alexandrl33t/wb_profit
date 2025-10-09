@@ -6,8 +6,9 @@ import pandas as pd
 import schedule
 
 import all_requests
-from config import settings, bot
+from core.config import settings, bot, logger
 from profit import Profit
+from utils.gspread_utils import get_clients
 
 times = {}
 
@@ -32,23 +33,23 @@ def smile(delta, yest):
 
 class UpdateData(Profit):
     def to_user(self):
-        print(f"Start user: {self.name}")
+        logger.info(f"Start user: {self.name}")
         if self.wb_token != "" and self.id_tg != "0":
             self.screen_v1(self.id_tg)
-            print(f"Good done and send: {self.name}\n\n")
+            logger.info(f"Good done and send: {self.name}\n\n")
         else:
             date_now = datetime.now()
             super().to_google(date_now)
-            print(f"Good done: {self.name}\n\n")
+            logger.info(f"Good done: {self.name}\n\n")
 
     def to_chat(self):
-        print("start ", self.name)
+        logger.info(f"start {self.name}")
         if self.wb_token != "":
             if self.chat_:
                 self.screen_v2(self.id_chat)
             elif self.id_tg != "0":
                 self.screen_v2(self.id_tg)
-            print(f"Good done chat: {self.name}\n\n")
+            logger.info(f"Good done chat: {self.name}\n\n")
         else:
             return True
 
@@ -118,11 +119,11 @@ class UpdateData(Profit):
         if hour == 0:
             first_date = date_now - timedelta(1)
             date_for_google = first_date.strftime("%Y-%m-%d")
-            print(f"to google: {date_for_google}")
+            logger.info(f"to google: {date_for_google}")
             data = super().to_google(first_date)
         else:
             date_for_google = date_now.strftime("%Y-%m-%d")
-            print(f"to google: {date_for_google}")
+            logger.info(f"to google: {date_for_google}")
             data = super().to_google(date_now)
 
         money_ord = data["money_ord"]
@@ -133,7 +134,7 @@ class UpdateData(Profit):
         else:
             delta_revenue = money_ord - yesterday_revenue
 
-        general_text += f"*\n📈ВЫРУЧКА: {int(money_ord)} ₽\n📈Δ {smile(delta_revenue, yesterday_revenue)}\n\n💰 ПРИБЫЛЬ: {int(profit_now)} RUB. \n💰 РЕНТА: {round(data['renta']*100,2)}%\n💰 ДРР: {round(data['drr']*100,2)}%*\n\n"
+        general_text += f"*\n📈ВЫРУЧКА: {int(money_ord)} ₽\n📈Δ {smile(delta_revenue, yesterday_revenue)}\n\n💰 ПРИБЫЛЬ: {int(profit_now)} RUB. \n💰 РЕНТА: {round(data['renta'] * 100, 2)}%\n💰 ДРР: {round(data['drr'] * 100, 2)}%*\n\n"
         general_text += f"*💰 ВЧЕРА В ЭТО ВРЕМЯ: {yesterday_profit} RUB.\n"
         general_text += f"💰 Δ {smile(delta_profit, yesterday_profit)}*"
 
@@ -162,7 +163,7 @@ class UpdateData(Profit):
         first_date = date_now - timedelta(1)
         data_of_profit = super().to_google(first_date, 0)
 
-        general_text += f"*💰 ПРИБЫЛЬ: {int(data_of_profit['profit'])} RUB. \n💰 РЕНТА: {round(data_of_profit['renta']*100,2)}%\n💰 ДРР: {round(data_of_profit['drr']*100,2)}%\n💰 Годовая доходность: {round(data_of_profit['prc_year']*100,2)}%*\n\n"
+        general_text += f"*💰 ПРИБЫЛЬ: {int(data_of_profit['profit'])} RUB. \n💰 РЕНТА: {round(data_of_profit['renta'] * 100, 2)}%\n💰 ДРР: {round(data_of_profit['drr'] * 100, 2)}%\n💰 Годовая доходность: {round(data_of_profit['prc_year'] * 100, 2)}%*\n\n"
         time.sleep(30)
         data = self.by_api_get_data()
         general_text += general_text_today(
@@ -176,14 +177,6 @@ class UpdateData(Profit):
             general_text += "\n\n*! БЕЗ УЧЕТА РЕКЛАМЫ !*"
 
         bot.send_message(who_send, text=general_text, parse_mode="Markdown")
-
-
-def get_clients() -> pd.DataFrame:
-    gc = gspread.service_account(filename=settings.gspread_credentials_file)
-    sh = gc.open_by_key(settings.data_key)
-    data = sh.worksheet("data").get_all_values()
-    df = pd.DataFrame(data[1:], columns=data[0])
-    return df
 
 
 def all_start_to_user():
@@ -272,6 +265,6 @@ def updates_data():
         time.sleep(1)
 
 
-print("Starting...")
+logger.info("Starting...")
 all_start_to_user()
 updates_data()

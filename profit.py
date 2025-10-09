@@ -5,7 +5,7 @@ from datetime import datetime
 import gspread
 
 import all_requests
-from config import bot, settings
+from core.config import bot, settings, logger
 
 
 class Profit:
@@ -36,7 +36,7 @@ class Profit:
             with open(f"{self.name}_revenue_time.pkl", "wb") as f:
                 pickle.dump(self.revenue_time, f)
 
-        print(f"Registetion: {self.name}")
+        logger.info(f"Registetion: {self.name}")
 
     def sklad_by_api(self):
         result_sklad = {}
@@ -46,7 +46,7 @@ class Profit:
                 result = result.json()
                 break
             else:
-                print(f"ERROR BY SKLAD BY API. CODE: {result.status_code}\nsleep-10")
+                logger.error(f"ERROR BY SKLAD BY API. CODE: {result.status_code}\nsleep-10")
                 time.sleep(10)
         for i in result:
             if i["warehouseName"] == "Санкт-Петербург Шушары":
@@ -62,7 +62,7 @@ class Profit:
     def get_data_from_table(self):
         worksheet = self.sh.worksheet("settings")
         list_of_lists = worksheet.get_all_values()
-        print("GOOD")
+        logger.info("GOOD")
         art_params = {}
         for i in list_of_lists[1:]:
             if i[1].replace(",", ".") == "":
@@ -153,18 +153,18 @@ class Profit:
         table = []
         art_profits = {}
         art_revenues = {}
-        print("GET ORDER | ", end="")
+        logger.info("GET ORDER | ")
         orders = self.get_orders(day)
-        print("GET PVS | ", end="")
+        logger.info("GET PVS | ")
         # pvs = self.get_buyout(day)
-        print("GET DATA_SET | ", end="")
+        logger.info("GET DATA_SET | ")
         data_set = self.get_data_from_table()
-        print("GET AD | \n", end="")
+        logger.info("GET AD | \n")
         try:
             ads = self._get_ad(day)
             good_ad = True
         except Exception as ex:
-            print("WITHOUT ADS")
+            logger.warning("WITHOUT ADS")
             good_ad = False
             ads = {}
             bot.send_message(
@@ -290,7 +290,7 @@ class Profit:
                 drr = 0
             profit = money_sell - sebes - komis - logistic - tax - save - ad
             art_profits.update({i: round(profit, 2)})
-            # print(f"profit {profit} |money sell {money_sell} | sebes {sebes} | komis {komis} | logis {logistic} | tax {tax} | save {save} | ad {ad}")
+            # logger.debug(f"profit {profit} |money sell {money_sell} | sebes {sebes} | komis {komis} | logis {logistic} | tax {tax} | save {save} | ad {ad}")
 
             if money_sell != 0:
                 marja = round(profit / money_sell, 4)
@@ -395,7 +395,7 @@ class Profit:
         else:
             worksheet = self.sh.worksheet(table_name)
         worksheet.format(
-            f"A{len(table)+1}:O{len(table)+1}",
+            f"A{len(table) + 1}:O{len(table) + 1}",
             {
                 "backgroundColor": {"red": 1.0, "green": 0.95, "blue": 0.8},
                 "textFormat": {"bold": True},

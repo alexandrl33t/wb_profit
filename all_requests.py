@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import json
+import requests
 import time
 from datetime import timedelta
 from typing import Any, Dict, Optional, List
 
-import requests
+from core.config import logger
 
 ERROR_SLEEP_TIME = 60
 MAX_RETRIES = 3
@@ -15,13 +16,13 @@ TIMEOUT = 30
 def debug_print_resp(resp: requests.Response):
     try:
         payload = resp.json()
-        print(json.dumps(payload, indent=4, ensure_ascii=False))
+        logger.debug(json.dumps(payload, indent=4, ensure_ascii=False))
     except Exception:
-        print(resp.text[:1000])
+        logger.debug(resp.text[:1000])
 
 
 def debug_print_dict(dictionary):
-    print(json.dumps(dictionary, indent=4, ensure_ascii=False))
+    logger.debug(json.dumps(dictionary, indent=4, ensure_ascii=False))
 
 
 SESSION = requests.Session()
@@ -42,23 +43,23 @@ def _request(
                 method, url, headers=headers, params=params, json=json, timeout=TIMEOUT
             )
         except requests.exceptions.Timeout:
-            print(
+            logger.warning(
                 f"[WARN] HTTP {method} {url} TIMEOUT "
                 f"(attempt {attempt}/{MAX_RETRIES}). Retry in {ERROR_SLEEP_TIME}s"
             )
             time.sleep(ERROR_SLEEP_TIME)
             continue
         except requests.exceptions.RequestException as e:
-            print(f"[ERROR] HTTP {method} {url} FAILED: {e}")
+            logger.error(f"[ERROR] HTTP {method} {url} FAILED: {e}")
             return None  # фатальная ошибка, не будем ретраить
 
         if resp.ok:
-            print(f"[INFO] HTTP {method} {url} OK ({resp.status_code})")
+            logger.info(f"[INFO] HTTP {method} {url} OK ({resp.status_code})")
             if retry > 0:
                 time.sleep(retry)
             return resp
 
-        print(
+        logger.warning(
             f"[WARN] HTTP {method} {url} -> {resp.status_code} "
             f"(attempt {attempt}/{MAX_RETRIES}). Retry in {ERROR_SLEEP_TIME}s"
         )
@@ -90,7 +91,7 @@ def get_nm_art(token: str) -> Dict[str, Any]:
         0,
         {"limit": 1000},
     )
-    print(f"Requests get_NM_ART: {resp.status_code} STOP")
+    logger.info(f"Requests get_NM_ART: {resp.status_code} STOP")
     return resp.json()
 
 
@@ -105,7 +106,7 @@ def get_sales(token: str, data: str, one_day: bool = True) -> List[Dict[str, Any
         0,
         {"dateFrom": data, "flag": 1 if one_day else 0},
     )
-    print(f"Requests get_sales: {resp.status_code} STOP")
+    logger.info(f"Requests get_sales: {resp.status_code} STOP")
     return resp.json()
 
 
@@ -117,7 +118,7 @@ def get_orders(data: str, token: str, one_day: bool = True) -> List[Dict[str, An
         0,
         {"dateFrom": data, "flag": 1 if one_day else 0},
     )
-    print(f"Requests get_orders: {resp.status_code} STOP")
+    logger.info(f"Requests get_orders: {resp.status_code} STOP")
     return resp.json()
 
 
@@ -149,7 +150,7 @@ def get_stat(day, token: str, offset: int) -> Dict[str, Any]:
             "page": 1,
         },
     )
-    print(f"Requests get_stat: {resp.status_code} STOP")
+    logger.info(f"Requests get_stat: {resp.status_code} STOP")
     return resp.json()
 
 
@@ -232,7 +233,7 @@ def get_ad_stat(token: str, day, ids: list[int]) -> list[dict]:
         resp = _request("POST", url, headers, 0, json=body)
         # возможные варианты: 200 с [] / 204 / 4xx
         if not resp or not resp.ok:
-            print(
+            logger.warning(
                 f"[WARN] fullstats chunk {i // 100 + 1}: http {getattr(resp, 'status_code', None)}"
             )
             continue

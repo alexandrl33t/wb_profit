@@ -5,6 +5,7 @@ from alembic import context
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
+from core.config import settings
 from models import Base
 
 target_metadata = Base.metadata
@@ -13,15 +14,13 @@ target_metadata = Base.metadata
 config = context.config
 
 # Конструируем строку подключения из переменных окружения
-DB_USER = os.getenv("DB_USER", "postgres")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "")
-DB_HOST = os.getenv("DB_HOST", "localhost")
-DB_PORT = os.getenv("DB_PORT", "5432")
-DB_NAME = os.getenv("DB_NAME", "postgres")
+DB_USER = settings.db_user
+DB_PASSWORD = settings.db_password
+DB_HOST = settings.db_host
+DB_PORT = settings.db_port
+DB_NAME = settings.db_name
 
-SQLALCHEMY_URL = (
-    f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-)
+SQLALCHEMY_URL = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{settings.db_name}"
 
 # Передаём URL в Alembic
 config.set_main_option("sqlalchemy.url", SQLALCHEMY_URL)
