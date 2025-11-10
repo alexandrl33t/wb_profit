@@ -161,7 +161,9 @@ def create_user_script_link_safe(
             db, report_spreadsheet_key, script_id
         )
         if existing_link:
-            logger.info(f"  Связь уже существует: {report_spreadsheet_key} + {script_id}")
+            logger.info(
+                f"  Связь уже существует: {report_spreadsheet_key} + {script_id}"
+            )
             return existing_link
 
     # Создаем новую связь
@@ -231,7 +233,9 @@ def import_clients_data():
                     wb_token=wb_token if wb_token else None,
                 )
                 if not user:
-                    logger.error(f"  Не удалось создать пользователя для строки {index + 1}")
+                    logger.error(
+                        f"  Не удалось создать пользователя для строки {index + 1}"
+                    )
                     continue
                 logger.info(f"  Пользователь: {user.id}")
 
@@ -275,7 +279,9 @@ def import_clients_data():
                     # Устанавливаем enabled_until на 100 лет вперед
                     enabled_until = datetime.utcnow() + timedelta(days=365 * 100)
 
-                    logger.info(f"  Связываем пользователя {user.id} со скриптом {script_id}")
+                    logger.info(
+                        f"  Связываем пользователя {user.id} со скриптом {script_id}"
+                    )
                     link = create_user_script_link_safe(
                         db=db,
                         user_id=user.id,
@@ -288,7 +294,9 @@ def import_clients_data():
                     if link:
                         logger.info(f"  Связь: {link.id}")
                 else:
-                    logger.warning(f"  Пропускаем связывание: скрипт '{script_type}' не найден")
+                    logger.warning(
+                        f"  Пропускаем связывание: скрипт '{script_type}' не найден"
+                    )
 
             except Exception as e:
                 logger.error(f"  Ошибка при обработке строки {index + 1}: {e}")

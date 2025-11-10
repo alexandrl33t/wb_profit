@@ -1,13 +1,17 @@
+import os.path
+
 import gspread
 
 from core.config import settings, logger
 
 
 def start_clean(key_table: str):
-    gc = gspread.service_account(filename=settings.gspread_credentials_file)
+    gc = gspread.service_account(
+        filename=os.path.join(settings.base_dir, settings.gspread_credentials_file)
+    )
     sh = gc.open_by_key(key_table)
-
-    for worksheet in sh.worksheets():
+    worksheets = sh.worksheets()
+    for worksheet in worksheets[::-1]:
         logger.info(f"🧹 Очищаем лист: {worksheet.title}")
 
         all_cells = worksheet.get_all_cells()
@@ -39,4 +43,4 @@ def start_clean(key_table: str):
     logger.info("✨ Очистка завершена.")
 
 
-start_clean("table key")
+start_clean("1ehc4iHSO1vXSR3z1PoPgBpAew_NmWy7ZEenEZvAiCic")

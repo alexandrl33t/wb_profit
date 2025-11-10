@@ -5,16 +5,26 @@ from pathlib import Path
 import telebot
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pathlib import Path
+
+base_dir = Path(__file__).parent.parent.absolute()
 
 
 class Settings(BaseSettings):
     # Секреты
-    tg_bot_token: str = Field(..., description="Токен Telegram-бота")
-    data_key: str = Field(..., description="Секретный ключ для работы с данными")
+    tg_bot_token: str = Field(
+        ..., description="Токен Telegram-бота", alias="TG_BOT_TOKEN"
+    )
+    data_key: str = Field(
+        ..., description="Секретный ключ для работы с данными", alias="DATA_KEY"
+    )
+    base_dir: str = str(Path(__file__).parent.parent.absolute())
 
     # Google credentials
     gspread_credentials_file: Path = Field(
-        "credentials.json", description="Путь к JSON с credentials для Google API"
+        "credentials.json",
+        description="Путь к JSON с credentials для Google API",
+        alias="GSPREAD_CREDENTIALS_FILE",
     )
 
     fernet_key: str = Field(..., description="Ключ шифрования")
@@ -27,7 +37,7 @@ class Settings(BaseSettings):
     db_name: str = Field(default="postgres", description="Имя базы данных")
 
     model_config = SettingsConfigDict(
-        env_file=".env",  # можно хранить локально .env
+        env_file="../.env",  # можно хранить локально .env
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="allow",
@@ -42,35 +52,35 @@ def setup_logger(name: str = "wb_profit", level: str = "INFO") -> logging.Logger
     Настраивает логгер для проекта.
     """
     logger = logging.getLogger(name)
-    
+
     # Устанавливаем уровень логирования
     log_level = getattr(logging, level.upper(), logging.INFO)
     logger.setLevel(log_level)
-    
+
     # Проверяем, есть ли уже обработчики
     if logger.handlers:
         return logger
-    
+
     # Создаем форматтер
     formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
-    
+
     # Создаем обработчик для консоли
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(log_level)
     console_handler.setFormatter(formatter)
-    
+
     # Создаем обработчик для файла
-    file_handler = logging.FileHandler('wb_profit.log', encoding='utf-8')
+    file_handler = logging.FileHandler("wb_profit.log", encoding="utf-8")
     file_handler.setLevel(log_level)
     file_handler.setFormatter(formatter)
-    
+
     # Добавляем обработчики к логгеру
     logger.addHandler(console_handler)
     logger.addHandler(file_handler)
-    
+
     return logger
 
 

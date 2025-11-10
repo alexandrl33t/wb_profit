@@ -46,7 +46,9 @@ class Profit:
                 result = result.json()
                 break
             else:
-                logger.error(f"ERROR BY SKLAD BY API. CODE: {result.status_code}\nsleep-10")
+                logger.error(
+                    f"ERROR BY SKLAD BY API. CODE: {result.status_code}\nsleep-10"
+                )
                 time.sleep(10)
         for i in result:
             if i["warehouseName"] == "Санкт-Петербург Шушары":
@@ -381,6 +383,15 @@ class Profit:
 
         return {"table": table, "ad": good_ad}
 
+    def _ensure_size(self, ws, min_rows: int, min_cols: int):
+        # текущие размеры
+        rows = ws.row_count
+        cols = ws.col_count
+        need_rows = max(min_rows, rows)
+        need_cols = max(min_cols, cols)
+        if need_rows != rows or need_cols != cols:
+            ws.resize(rows=need_rows, cols=need_cols)
+
     def to_google(self, day, check_screen=1):
         data = self.generate_table(day, check_screen)
         table = data["table"]
@@ -394,6 +405,10 @@ class Profit:
             worksheet = worksheet1.duplicate(new_sheet_name=table_name)
         else:
             worksheet = self.sh.worksheet(table_name)
+
+        last_data_row = 1 + len(table)
+        MIN_COLS = 30
+        self._ensure_size(worksheet, min_rows=last_data_row, min_cols=MIN_COLS)
         worksheet.format(
             f"A{len(table) + 1}:O{len(table) + 1}",
             {

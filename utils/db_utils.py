@@ -13,14 +13,12 @@ def insert_user(
     full_name: str,
     legal_name_en: str,
     wb_token: Optional[str] = None,
-    gspread_key: Optional[str] = None,
     telegram_user_id: Optional[int] = None,
 ) -> User:
     user = User(
         full_name=full_name,
         legal_name_en=legal_name_en,
         wb_token=wb_token,
-        gspread_key=gspread_key,
         telegram_user_id=telegram_user_id,
     )
     db.add(user)
@@ -32,7 +30,7 @@ def insert_user(
 def insert_chat(
     db: Session,
     *,
-    chat_id: int,
+    chat_id: str,
     name: str,
 ) -> Chat:
     chat = Chat(chat_id=chat_id, name=name)
@@ -49,7 +47,7 @@ def insert_script(
     title: str,
     description: str,
 ) -> Script:
-    script = Script(code=code, title=title, description=description)
+    script = Script(title=title, description=description)
     db.add(script)
     db.commit()
     db.refresh(script)

@@ -1,7 +1,5 @@
-import os
 import uuid
 from datetime import datetime
-from decimal import Decimal
 from typing import Optional
 
 from cryptography.fernet import Fernet
@@ -14,7 +12,6 @@ from sqlalchemy import (
     ForeignKey,
     UniqueConstraint,
     func,
-    Numeric,
 )
 from sqlalchemy.dialects.postgresql import UUID, TIMESTAMP
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
