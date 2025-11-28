@@ -6,5 +6,5 @@ __pycache__/
 /venv/
 /test/
 *.log
-credentials.json
+data/credentials.json
 *.pkl
