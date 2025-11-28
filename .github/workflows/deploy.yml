@@ -66,6 +66,7 @@ jobs:
             cd ~/apps/wb_profit
 
             # Создаем .env из GitHub Secrets
+            rm /home/${{ secrets.SERVER_USER }}/apps/wb_profit/.env
             echo "${{ secrets.SERVER_ENV }}" > ~/apps/wb_profit/.env
             chmod 600 ~/apps/wb_profit/.env
 
