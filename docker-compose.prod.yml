@@ -10,7 +10,6 @@ services:
       - .env
     volumes:
       - ~/apps/wb_profit/:/app/data
-      - wb_data:/app/data
     ports:
       - "8000:8000"
 
