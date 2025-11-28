@@ -1,3 +1,4 @@
+import os
 import pickle
 import time
 from datetime import datetime
@@ -18,22 +19,27 @@ class Profit:
         self.id_chat = "-1002468321363"
         gc = gspread.service_account(filename=settings.gspread_credentials_file)
         self.sh = gc.open_by_key(key_table)
+        profit_file_path = os.path.join(
+            settings.base_dir, "data", f"{self.name}_profit_time.pkl"
+        )
         try:
-            with open(f"{self.name}_profit_time.pkl", "rb") as f:
+            with open(profit_file_path, "rb") as f:
                 loaded_dict = pickle.load(f)
             self.profit_time = loaded_dict
         except Exception:
             self.profit_time = {}
-            with open(f"{self.name}_profit_time.pkl", "wb") as f:
+            with open(profit_file_path, "wb") as f:
                 pickle.dump(self.profit_time, f)
-
+        revenue_file_path = os.path.join(
+            settings.base_dir, "data", f"{self.name}_revenue_time.pkl"
+        )
         try:
-            with open(f"{self.name}_revenue_time.pkl", "rb") as f:
+            with open(revenue_file_path, "rb") as f:
                 loaded_dict = pickle.load(f)
             self.revenue_time = loaded_dict
         except Exception:
             self.revenue_time = {}
-            with open(f"{self.name}_revenue_time.pkl", "wb") as f:
+            with open(revenue_file_path, "wb") as f:
                 pickle.dump(self.revenue_time, f)
 
         logger.info(f"Registetion: {self.name}")
@@ -373,11 +379,19 @@ class Profit:
         if check_screen and hour == 10:
             return {"table": table, "ad": good_ad}
         self.profit_time.update({hour: art_profits})
-        with open(f"{self.name}_profit_time.pkl", "wb") as f:
+
+        profit_file_path = os.path.join(
+            settings.base_dir, "data", f"{self.name}_profit_time.pkl"
+        )
+        with open(profit_file_path, "wb") as f:
             pickle.dump(self.profit_time, f)
 
-        self.revenue_time.update({hour: art_revenues})  # new
-        with open(f"{self.name}_revenue_time.pkl", "wb") as f:
+        self.revenue_time.update({hour: art_revenues})
+        revenue_file_path = os.path.join(
+            settings.base_dir, "data", f"{self.name}_revenue_time.pkl"
+        )
+        # new
+        with open(revenue_file_path, "wb") as f:
             pickle.dump(self.revenue_time, f)
 
         return {"table": table, "ad": good_ad}
