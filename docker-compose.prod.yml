@@ -10,6 +10,7 @@ services:
       - .env
     volumes:
       - ~/apps/wb_profit/:/app/data
+      - /etc/localtime:/etc/localtime:ro
 
 volumes:
   wb_data:
