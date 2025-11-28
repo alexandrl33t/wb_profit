@@ -69,15 +69,14 @@ class Profit:
         for i in list_of_lists[1:]:
             if i[1].replace(",", ".") == "":
                 continue
-            i[1] = i[1].replace("\xa0", "")
             art_params.update(
                 {
                     i[0]: {
-                        "logistic": float(i[1].replace(",", ".")),
-                        "sebes": float(i[2].replace(",", ".")),
-                        "save": float(i[3].replace(",", ".")),
-                        "tax": float(i[4].replace(",", ".")),
-                        "comis": float(i[5].replace(",", ".")),
+                        "logistic": float(i[1].replace(",", ".").replace("\xa0", "")),
+                        "sebes": float(i[2].replace(",", ".").replace("\xa0", "")),
+                        "save": float(i[3].replace(",", ".").replace("\xa0", "")),
+                        "tax": float(i[4].replace(",", ".").replace("\xa0", "")),
+                        "comis": float(i[5].replace(",", ".").replace("\xa0", "")),
                     }
                 }
             )
