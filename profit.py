@@ -163,7 +163,7 @@ class Profit:
         logger.info("GET ORDER | ")
         orders = self.get_orders(day)
         logger.info("GET PVS | ")
-        # pvs = self.get_buyout(day)
+        pvs = self.get_buyout(day)
         logger.info("GET DATA_SET | ")
         data_set = self.get_data_from_table()
         logger.info("GET AD | \n")
@@ -271,12 +271,13 @@ class Profit:
             count_ord = orders["count"][i]
             work = True
             art = i
-            # if i not in pvs: pv = 0.5
-            # else: pv = pvs[i]/100
-            # if pv == 0:
-            #     pv = 0.7
-            #     art = i+"NOT PV"
-            pv = 0.65
+            if i not in pvs:
+                pv = 0.5
+            else:
+                pv = pvs[i] / 100
+            if pv == 0:
+                pv = 0.65
+                art = i + "NOT PV"
             money_sell = round(money_ord * pv, 2)
             count_sell = round(count_ord * pv, 2)
             sebes = data_set[i]["sebes"] * count_sell
