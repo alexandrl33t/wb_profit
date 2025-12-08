@@ -129,7 +129,7 @@ class Profit:
         ids = self._get_ids_now(day)
         if not ids:
             return result
-
+        ids = list(set(ids))  # убираем дубл
         data = all_requests.get_ad_stat(self.wb_token, day, ids)  # ← теперь всегда list
         art_by_nm = self.get_nm()
 

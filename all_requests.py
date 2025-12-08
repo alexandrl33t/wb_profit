@@ -227,8 +227,8 @@ def get_ad_stat(token: str, day, ids: list[int]) -> list[dict]:
     headers = {"Authorization": token, "Content-Type": "application/json"}
     result = []
 
-    for i in range(0, len(ids), 100):  # шаг = 100
-        chunk = ids[i : i + 100]
+    for i in range(0, len(ids), 50):  # шаг = 100
+        chunk = ids[i : i + 50]
         body = [{"id": adv_id, "dates": [day]} for adv_id in chunk]
         resp = _request("POST", url, headers, 0, json=body)
         # возможные варианты: 200 с [] / 204 / 4xx
