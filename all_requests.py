@@ -137,19 +137,17 @@ def get_by_day(data: List[Dict[str, Any]]) -> Dict[str, Dict[str, float]]:
 
 
 def get_stat(day, token: str, offset: int) -> Dict[str, Any]:
-    first_date = (day - timedelta(offset)).strftime("%Y-%m-%d 00:00:00")
-    second_date = day.strftime("%Y-%m-%d 00:00:00")
+    first_date = (day - timedelta(offset)).strftime("%Y-%m-%d")
+    second_date = day.strftime("%Y-%m-%d")
 
     resp = _request(
         "POST",
-        "https://seller-analytics-api.wildberries.ru/api/v2/nm-report/detail",
+        "https://seller-analytics-api.wildberries.ru/api/analytics/v3/sales-funnel/products",
         {"Authorization": token},
         0,
-        json={
-            "period": {"begin": first_date, "end": second_date},
-            "page": 1,
-        },
+        json={"selectedPeriod": {"start": first_date, "end": second_date}},
     )
+
     logger.info(f"Requests get_stat: {resp.status_code} STOP")
     return resp.json()
 
@@ -157,10 +155,10 @@ def get_stat(day, token: str, offset: int) -> Dict[str, Any]:
 def funnel_table(token: str, day) -> Dict[str, float]:
     data_stat = get_stat(day=day, token=token, offset=7)
     return {
-        i["vendorCode"]: i["statistics"]["selectedPeriod"]["conversions"][
-            "buyoutsPercent"
+        i["product"]["vendorCode"]: i["statistic"]["selected"]["conversions"][
+            "buyoutPercent"
         ]
-        for i in data_stat["data"]["cards"]
+        for i in data_stat["data"]["products"]
     }
 
 
