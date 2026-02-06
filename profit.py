@@ -412,11 +412,15 @@ class Profit:
 
         table_name = day.strftime("%d.%m.%Y")
         title_list = []
-        for i in self.sh.worksheets():
+        worksheets = self.sh.worksheets()
+        for i in worksheets:
             title_list.append(i.title)
         if table_name not in title_list:
             worksheet1 = self.sh.worksheet("Образец")
             worksheet = worksheet1.duplicate(new_sheet_name=table_name)
+            # при созданни нового листа с датой лист "Обобщено" двигаем влево
+            ws_common = next(ws for ws in worksheets if ws.title == "Обобщенно")
+            self.sh.reorder_worksheets([ws_common])
         else:
             worksheet = self.sh.worksheet(table_name)
 
