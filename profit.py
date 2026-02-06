@@ -419,8 +419,9 @@ class Profit:
             worksheet1 = self.sh.worksheet("Образец")
             worksheet = worksheet1.duplicate(new_sheet_name=table_name)
             # при созданни нового листа с датой лист "Обобщено" двигаем влево
-            ws_common = next(ws for ws in worksheets if ws.title == "Обобщенно")
-            self.sh.reorder_worksheets([ws_common])
+            ws_common = next((ws for ws in worksheets if ws.title == "Обобщенно"), None)
+            if ws_common is not None:
+                self.sh.reorder_worksheets([ws_common])
         else:
             worksheet = self.sh.worksheet(table_name)
 
