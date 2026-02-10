@@ -10,6 +10,7 @@ from core.config import settings, bot, logger
 from profit import Profit
 from utils.gspread_utils import get_clients
 
+logger.info("Starting")
 times = {}
 
 for i in range(-100, 0):
