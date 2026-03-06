@@ -190,11 +190,13 @@ def get_ids_promotion_adverts(token: str, day, statuses=(7, 9, 11)) -> list[int]
 def get_ids_auction_adverts(token: str, day, statuses=[7, 9, 11]) -> list[int]:
     day = day.strftime("%Y-%m-%d")
     ids: list[int] = []
-    url = "https://advert-api.wildberries.ru/adv/v0/auction/adverts"
+    url = "https://advert-api.wildberries.ru/api/advert/v2/adverts"
     headers = {"Authorization": token}
 
     # for st in statuses:
-    resp = _request("GET", url, headers, 0, params={"status": statuses})
+    resp = _request(
+        "GET", url, headers, 0, params={"statuses": ",".join(map(str, statuses))}
+    )
     if not resp or not resp.ok:
         return ids
     data = resp.json()
@@ -221,14 +223,18 @@ def get_ids(token: str) -> requests.Response:
 
 def get_ad_stat(token: str, day, ids: list[int]) -> list[dict]:
     day = day.strftime("%Y-%m-%d")
-    url = "https://advert-api.wildberries.ru/adv/v2/fullstats"
+    url = "https://advert-api.wildberries.ru/adv/v3/fullstats"
     headers = {"Authorization": token, "Content-Type": "application/json"}
     result = []
 
     for i in range(0, len(ids), 50):  # шаг = 100
         chunk = ids[i : i + 50]
-        body = [{"id": adv_id, "dates": [day]} for adv_id in chunk]
-        resp = _request("POST", url, headers, 0, json=body)
+        params = {
+            "ids": ",".join(map(str, chunk)),
+            "beginDate": day,
+            "endDate": day,
+        }
+        resp = _request("GET", url, headers, 0, params=params)
         # возможные варианты: 200 с [] / 204 / 4xx
         if not resp or not resp.ok:
             logger.warning(

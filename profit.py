@@ -119,18 +119,18 @@ class Profit:
                 result.append(adv["advertId"])
         return result
 
-    def _get_ids_now(self, day):
-        return all_requests.get_ids_promotion_adverts(
-            self.wb_token, day
-        ) + all_requests.get_ids_auction_adverts(self.wb_token, day)
+    # def _get_ids_now(self, day):
+    #     return all_requests.get_ids_promotion_adverts(
+    #         self.wb_token, day
+    #     ) + all_requests.get_ids_auction_adverts(self.wb_token, day)
 
     def _get_ad(self, day):
         result = {}
-        ids = self._get_ids_now(day)
+        ids = all_requests.get_ids_auction_adverts(self.wb_token, day)
         if not ids:
             return result
         ids = list(set(ids))  # убираем дубл
-        data = all_requests.get_ad_stat(self.wb_token, day, ids)  # ← теперь всегда list
+        data = all_requests.get_ad_stat(self.wb_token, day, ids)
         art_by_nm = self.get_nm()
 
         for h in data:
@@ -140,7 +140,7 @@ class Profit:
             for app in days[0].get("apps", []):
                 if app.get("appType") == 0:
                     continue
-                for nm in app.get("nm", []):
+                for nm in app.get("nms", []):
                     art = art_by_nm.get(nm.get("nmId"))
                     if not art:
                         continue
