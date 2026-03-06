@@ -266,6 +266,7 @@ def updates_data():
         time.sleep(1)
 
 
+all_start_to_chat()
 logger.info("Starting...")
 all_start_to_user()
 updates_data()
